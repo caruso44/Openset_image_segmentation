@@ -8,7 +8,8 @@ PREFIX_OPT = 'opt'
 PREFIX_LIDAR = 'lidar'
 
 PREPARED_PATH = 'C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared'
-PATCHES_PATH = "prepared/train_patches.npy"
+PATCHES_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/train_patches.npy"
+VAL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/val_patches.npy"
 
 DISCARDED_CLASS = 7
 REMOVED_CLASSES = [10, 11]
