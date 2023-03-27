@@ -15,9 +15,10 @@ def main():
     close_idx, open_idx = dl.get_close_set_index(7)           
     model = torch.load("open_set_model.pth")
     weibull = fit(model, dl, close_idx)
+    print(weibull.wbFits[:, 0], weibull.wbFits[:, 1])
     correct = 0
     total = 0
-    with tqdm(total=len(close_idx)) as pbar:
+    with tqdm(total=len(open_idx)) as pbar:
         for idx in open_idx:
             for i in range(64):
                 for j in range(64):

@@ -10,6 +10,8 @@ from openmax import fit_high
 import numpy as np
 from tqdm import tqdm
 from general import BATCH_SIZE
+from scipy.stats import weibull_min
+
 
 def create_dataloader(path_to_patches, endpoint):
     dl = Satelite_images(path_to_patches, endpoint)
@@ -53,6 +55,7 @@ def train_fn(optmizier, model, loss_fn, dl):
 def fit(model, dl, close_idx):
     amount = np.zeros(7)
     mean = np.zeros((7,7))
+
     with tqdm(total=len(close_idx)) as pbar:
         for idx in close_idx:
             image, label = dl[idx]
@@ -69,10 +72,10 @@ def fit(model, dl, close_idx):
                         if label[i][j] < 7 and np.argmax(predictions[:,i,j]) == label[i][j]:
                             mean[label[i][j]] += output[:,i,j].numpy()
                             amount[label[i][j]] += 1
-
+                        
             pbar.update(1)
-        for i in range(7):
-            mean[i] = mean[i]/amount[i]
+    for i in range(7):
+        mean[i] = mean[i]/amount[i]
     mean = torch.from_numpy(mean)
     weibull = fit_high(mean, 1, 20)
     return weibull
