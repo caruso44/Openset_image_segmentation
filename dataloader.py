@@ -47,4 +47,10 @@ class Satelite_images(Dataset):
             np.array(close_set),
             np.array(open_set)
         )
-
+    def get_index_tensor(self):
+        n = self.__len__()
+        index = []
+        for i in range(n):
+            index.append(i)
+        index = torch.tensor(index)
+        return index

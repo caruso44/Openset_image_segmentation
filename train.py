@@ -14,8 +14,9 @@ from tqdm import tqdm
 
 
 def main():
-    model = UNET(in_channel=4,out_channel=7).to(DEVICE)
-    loss_fn = nn.BCEWithLogitsLoss()
+    model = UNET(in_channel=4,out_channel=8).to(DEVICE)
+    n = int(7)
+    loss_fn = nn.CrossEntropyLoss()
     optmizier = optmim.Adam(model.parameters(),lr= LEARNING_RATE) 
     endpoint = "_train.npy"
     dl = create_dataloader(PATCHES_PATH, endpoint)                

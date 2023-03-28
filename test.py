@@ -3,7 +3,8 @@ from utils import create_dataloader, train_fn, fit, choose_class
 from general import(
     VAL_PATH,
     PATCHES_PATH,
-
+    DEVICE,
+    BATCH_SIZE
 )
 from tqdm import tqdm
 import pickle
@@ -32,8 +33,19 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
-
+    #main()
+    dl = Satelite_images(PATCHES_PATH, "_test.npy")
+    dl = torch.utils.data.DataLoader(dl, batch_size=BATCH_SIZE, sampler= dl.get_index_tensor())
+    for image, mask in dl:
+        image = image.to(DEVICE)
+        model = torch.load("open_set_model.pth")
+        model = model.to(DEVICE)
+        output = model(image)
+        output = output.to(DEVICE)
+        output = torch.argmax(output, dim=1)
+        output = output.to("cpu")
+        print((output == mask).sum())
+        break
     ########### get index map ###########
     '''
     path = 'C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/map.data'

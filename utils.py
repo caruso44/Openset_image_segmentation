@@ -15,10 +15,15 @@ from scipy.stats import weibull_min
 
 def create_dataloader(path_to_patches, endpoint):
     dl = Satelite_images(path_to_patches, endpoint)
-    close_idx, _ = dl.get_close_set_index(7)
-    train_loader = torch.utils.data.DataLoader(dl, batch_size=BATCH_SIZE, sampler=close_idx)
+    train_loader = torch.utils.data.DataLoader(dl, batch_size=BATCH_SIZE, sampler= dl.get_index_tensor())
     return train_loader
 
+def one_hot(targets):    
+    targets_extend=targets.clone()
+    targets_extend.unsqueeze_(1) # convert to Nx1xHxW
+    one_hot = torch.cuda.FloatTensor(targets_extend.size(0), 8, targets_extend.size(2), targets_extend.size(3)).zero_()
+    one_hot.scatter_(1, targets_extend, 1) 
+    return one_hot
 
 
 def train_fn(optmizier, model, loss_fn, dl):
@@ -27,16 +32,12 @@ def train_fn(optmizier, model, loss_fn, dl):
         with tqdm(total=len(dl)) as pbar:
             for image, mask in dl:
                 image = image.float().to(DEVICE)
-
+                mask = mask.to(DEVICE)
                 ##################fowards####################
 
                 predictions = model(image)
                 predictions = F.softmax(predictions, dim = 1)
-                one_hot_mask = torch.zeros(mask.size()[0], 7, 64 ,64)
-                for k in range(mask.size()[0]):
-                    for i in range(64):
-                        for j in range(64):
-                            one_hot_mask[k][mask[k][i][j]][i][j] = 1
+                one_hot_mask = one_hot(mask)
                 one_hot_mask = one_hot_mask.to(DEVICE)
                 loss = loss_fn(predictions,one_hot_mask)
                 
@@ -53,8 +54,8 @@ def train_fn(optmizier, model, loss_fn, dl):
 
 
 def fit(model, dl, close_idx):
-    amount = np.zeros(7)
-    mean = np.zeros((7,7))
+    amount = np.zeros(8)
+    mean = np.zeros((8,8))
 
     with tqdm(total=len(close_idx)) as pbar:
         for idx in close_idx:

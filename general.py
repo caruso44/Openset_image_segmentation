@@ -2,7 +2,7 @@ import torch
 
 PATCH_SIZE = 64
 PATCH_OVERLAP = 0.8
-BATCH_SIZE = 4
+BATCH_SIZE = 16
 
 PREFIX_LABEL = 'label'
 PREFIX_OPT = 'opt'
@@ -20,7 +20,7 @@ N_OPTICAL_BANDS = 4
 """Bands order: 'BLUE','RED','GREEN','NIR','nx','ny','nz','curvatura','intensity','chm'"""
 #                 0      1      2      3     0    1    2       3           4        5                     
 MAX_EPOCHS = 500
-EPOCHS = 30
+EPOCHS = 10
 
 
 #LEARNING_RATE = 1e-4
