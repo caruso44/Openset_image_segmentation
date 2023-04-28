@@ -10,17 +10,21 @@ PREFIX_LIDAR = 'lidar'
 
 PREPARED_PATH = 'C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared'
 PATCHES_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/train_patches.npy"
-VAL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/val_patches.npy"
-
+PATCHES_VAL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/val_patches.npy"
+PATCHES_TEST_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/test_patches.npy"
+MODEL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/open_set_model.pth"
 DISCARDED_CLASS = 7
 REMOVED_CLASSES = [10, 11]
 N_CLASSES = 10 - len(REMOVED_CLASSES)
 N_OPTICAL_BANDS = 4
+VALID_SIZE = 0.15
+
+
 #N_LIDAR_BANDS = 1#6
 """Bands order: 'BLUE','RED','GREEN','NIR','nx','ny','nz','curvatura','intensity','chm'"""
 #                 0      1      2      3     0    1    2       3           4        5                     
 MAX_EPOCHS = 500
-EPOCHS = 10
+EPOCHS = 50
 
 
 #LEARNING_RATE = 1e-4

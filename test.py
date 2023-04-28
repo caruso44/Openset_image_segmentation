@@ -1,57 +1,67 @@
 import torch
-from utils import create_dataloader, train_fn, fit, choose_class
+from utils import create_dataloader, train_fn, fit, choose_class, create_test_patches
 from general import(
-    VAL_PATH,
+    PATCHES_TEST_PATH,
     PATCHES_PATH,
+    PATCHES_VAL_PATH,
     DEVICE,
-    BATCH_SIZE
+    MODEL_PATH
 )
 from tqdm import tqdm
 import pickle
 import numpy as np
 from dataloader import Satelite_images
+import torch.nn.functional as F
 
 def main():
-    dl = Satelite_images(PATCHES_PATH, "_train.npy")
-    close_idx, open_idx = dl.get_close_set_index(7)           
+    dl = Satelite_images(PATCHES_TEST_PATH, "_test.npy")      
     model = torch.load("open_set_model.pth")
-    weibull = fit(model, dl, close_idx)
-    print(weibull.wbFits[:, 0], weibull.wbFits[:, 1])
-    correct = 0
     total = 0
-    with tqdm(total=len(open_idx)) as pbar:
-        for idx in open_idx:
-            for i in range(64):
-                for j in range(64):
-                    output = choose_class(weibull, dl[idx][0][:,i,j],[1,1,1,1,1,1,1,1],7)
-                    if output == dl[idx][1][i,j]:
-                        correct += 1
+    correct = 0
+    k = 0
+    for image, label in dl:
+        print(k)
+        image = image.unsqueeze(0)
+        image = image.cuda()
+        label = label.cuda()
+        output = model(image)
+        predictions = F.softmax(output, dim = 1)
+        predictions = predictions.squeeze(0)
+        predictions = torch.argmax(predictions, dim = 0)
+        for i in range(64):
+            for j in range(64):
+                if label[i][j] != 7:
                     total += 1
-            pbar.update(1)
+                    if predictions[i][j] == label[i][j]:
+                        correct += 1
+        k += 1
+        if k == 200:
+            break
     print(correct/total)
-                
+
+   
+def create_openset_classifier():
+    dl = Satelite_images(PATCHES_TEST_PATH, "_test.npy") 
+    dl2 = Satelite_images(PATCHES_VAL_PATH, "_train.npy")  
+    model = torch.load(MODEL_PATH)
+    model = model.to(DEVICE)
+    weibull = fit(model, dl2)
+    image = dl[32][0]
+    image = image.unsqueeze(0).to(DEVICE)
+    label = model(image)
+    label = F.softmax(label, dim = 0)
+    label = label.squeeze(0).to("cpu").detach().numpy()
+    pixel = label[:,42,42]
+    print(choose_class(weibull, pixel, [0.5,0.5,0.5,0.5,0.5,0.5,0.5], 7))
 
 
 if __name__ == "__main__":
-    #main()
-    dl = Satelite_images(PATCHES_PATH, "_test.npy")
-    dl = torch.utils.data.DataLoader(dl, batch_size=BATCH_SIZE, sampler= dl.get_index_tensor())
-    for image, mask in dl:
-        image = image.to(DEVICE)
-        model = torch.load("open_set_model.pth")
-        model = model.to(DEVICE)
-        output = model(image)
-        output = output.to(DEVICE)
-        output = torch.argmax(output, dim=1)
-        output = output.to("cpu")
-        print((output == mask).sum())
-        break
+    create_openset_classifier()
     ########### get index map ###########
     '''
-    path = 'C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/map.data'
+    path = 'D:/Caruso/code/OpenMax-main/prepared/map.data'
     with open(path, 'rb') as file:
         data = file.read()
         print(pickle.loads(data))
     '''
-
-        
+    

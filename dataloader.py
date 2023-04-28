@@ -5,16 +5,20 @@ import torch
 from torchvision.transforms import ToTensor
 import general
 
+
 class Satelite_images(Dataset):
-    def __init__(self, path_to_patches, endpoint, transformer = ToTensor()) -> None:
+    def __init__(self, path_to_patches, endpoint,  path_to_val = "", transformer = ToTensor()) -> None:
         opt_img = np.load(os.path.join(general.PREPARED_PATH, f'{general.PREFIX_OPT}_img.npy'))
         self.opt_img = opt_img.reshape((-1, opt_img.shape[-1]))
-    
+
         #self.labels = np.load(os.path.join(general.PREPARED_PATH, f'{general.PREFIX_LABEL}_train.npy')).reshape((-1,1)).astype(np.int64)
         self.labels = np.load(os.path.join(general.PREPARED_PATH, f'{general.PREFIX_LABEL}' + endpoint)).flatten().astype(np.int64)
         self.n_classes = np.unique(self.labels).shape[0]
-        self.patches = np.load(path_to_patches)#[:200]
+        self.patches = np.load(path_to_patches)
+        if path_to_val != "":
+            self.patches = np.concatenate((self.patches, np.load(path_to_val)))
         self.transformer = transformer
+        
         
     
     def __len__(self):
@@ -29,28 +33,10 @@ class Satelite_images(Dataset):
             opt_tensor,
             label_tensor
         )
-    
-    def get_close_set_index(self, number):
-        n = self.__len__()
-        close_set = []
-        open_set = []
-        for i in range(n):
-            patch_idx = self.patches[i]
-            label_tensor = torch.tensor(self.labels[patch_idx])
-            label_np = label_tensor.numpy()
-            label_np = np.unique(label_np)
-            if label_np[-1] == number:
-                open_set.append(i)
-            else:
-                close_set.append(i)
-        return (
-            np.array(close_set),
-            np.array(open_set)
-        )
-    def get_index_tensor(self):
+
+    def getindex(self):
         n = self.__len__()
         index = []
         for i in range(n):
             index.append(i)
-        index = torch.tensor(index)
-        return index
+        return np.array(index)
