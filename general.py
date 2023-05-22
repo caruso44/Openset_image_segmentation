@@ -8,11 +8,11 @@ PREFIX_LABEL = 'label'
 PREFIX_OPT = 'opt'
 PREFIX_LIDAR = 'lidar'
 
-PREPARED_PATH = 'C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared'
-PATCHES_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/train_patches.npy"
-PATCHES_VAL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/val_patches.npy"
-PATCHES_TEST_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/test_patches.npy"
-MODEL_PATH = "C:/Users/jpcar/OneDrive/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/open_set_model.pth"
+PREPARED_PATH = 'C:/Users/jpcar/OneDrive/Documentos/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared'
+PATCHES_PATH = "C:/Users/jpcar/OneDrive/Documentos/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/train_patches.npy"
+PATCHES_VAL_PATH = "C:/Users/jpcar/OneDrive/Documentos/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/val_patches.npy"
+PATCHES_TEST_PATH = "C:/Users/jpcar/OneDrive/Documentos/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/prepared/test_patches.npy"
+MODEL_PATH = "C:/Users/jpcar/OneDrive/Documentos/Área de Trabalho/IME/Pibt/Codigo/OpenMax-main/open_set_model.pth"
 DISCARDED_CLASS = 7
 REMOVED_CLASSES = [10, 11]
 N_CLASSES = 10 - len(REMOVED_CLASSES)
@@ -46,3 +46,7 @@ EARLY_STOP_MIN_DELTA = 0.00009
 PREDICTION_OVERLAPS = [0, 0.1, 0.3, 0.5, 0.7]
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
+
+LEN_VECTOR = 20000
+
+IMAGE_SIZE = 64

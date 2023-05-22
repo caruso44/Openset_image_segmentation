@@ -9,17 +9,20 @@ from general import(
     DEVICE,
     LEARNING_RATE,
     PATCHES_PATH,
-    PATCHES_VAL_PATH
+    PATCHES_VAL_PATH,
+    MODEL_PATH
 )
 
 
 
 def main():
     model = UNET(in_channel=4,out_channel=7).to(DEVICE)
-    loss_fn = nn.CrossEntropyLoss(ignore_index=7)
     optmizier = optmim.Adam(model.parameters(),lr= LEARNING_RATE, weight_decay = 5e-6) 
     endpoint = "_train.npy"
-    dl, dl_val = create_dataloader(PATCHES_PATH, endpoint, PATCHES_VAL_PATH)                
+    dl, weights = create_dataloader(PATCHES_PATH, endpoint)   
+    weights = weights.to(DEVICE)
+    dl_val = Satelite_images(PATCHES_VAL_PATH, "_train.npy")  
+    loss_fn = nn.CrossEntropyLoss(weight=weights, ignore_index=7, reduction= 'mean')
     model = train_fn(optmizier, model, loss_fn, dl, dl_val)
     torch.save(model, 'open_set_model.pth')
 

@@ -4,7 +4,7 @@ import os
 import torch
 from torchvision.transforms import ToTensor
 import general
-
+from tqdm import tqdm
 
 class Satelite_images(Dataset):
     def __init__(self, path_to_patches, endpoint,  path_to_val = "", transformer = ToTensor()) -> None:
@@ -40,3 +40,22 @@ class Satelite_images(Dataset):
         for i in range(n):
             index.append(i)
         return np.array(index)
+    
+    def getweight(self):
+        n = self.__len__()
+        weights = torch.zeros(7)
+        with tqdm(total=n) as pbar:
+            for index in range(n):
+                patch_idx = self.patches[index]
+                label_tensor = torch.tensor(self.labels[patch_idx])
+                for i in range(64):
+                    for j in range(64):
+                        if label_tensor[i][j] != 7:
+                            weights[label_tensor[i][j]] += 1
+                pbar.update(1)
+        weights = 1 - weights/weights.sum()
+        weights = weights/weights.sum()
+        return weights
+    
+
+        
