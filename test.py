@@ -1,24 +1,20 @@
 import torch
-from utils import create_dataloader, train_fn, create_test_patches, get_confusion_matrix
 from general import(
-    PATCHES_TEST_PATH,
-    PATCHES_PATH,
     PATCHES_VAL_PATH,
     DEVICE,
-    MODEL_PATH
 )
 from tqdm import tqdm
-import pickle
 import numpy as np
 from dataloader import Satelite_images
 import torch.nn.functional as F
-from tqdm import tqdm
-import matplotlib.pyplot as plt
-from openPCS import fit, get_mean, euclidean_distance, fit_libmr, fit_optimized
+from utils import euclidean_distance
 import scipy.stats as stats
+from evt import weibull_tailfitting
+from openmax import openmax
 
 
-def main():
+
+def test():
     dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
     model = torch.load("open_set_model.pth")
     model = model.to(DEVICE)
@@ -63,16 +59,41 @@ def main():
                     
                     
                     
-def check_model():
-    dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
-    model = torch.load("open_set_model.pth")
-    model = model.to(DEVICE)
-    get_confusion_matrix(model, dl)
-    
+
 
 if __name__ == "__main__":
     mean = np.load("mean.npy")
-    fit_libmr(mean)
+    model = torch.load("open_set_model.pth").to(DEVICE)
+    distance = np.load("distances.npy")
+    dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
+    weibull = weibull_tailfitting(mean, distance, 7, 20)
+    confusion_matrix = np.zeros((8,8))
+    precision = np.zeros(8)
+    recall = np.zeros(8)
+    f1_score = np.zeros(8)
+    with tqdm(total=len(dl)) as pbar:
+        for image, label in dl:
+            image = image.unsqueeze(0).to(DEVICE)
+            output = model(image)
+            prediction = F.softmax(output, dim = 1)
+            prediction = prediction.squeeze(0).to("cpu")
+            output = output.squeeze(0).to("cpu")
+            for i in range(64):
+                for j in range(64):
+                    prob = openmax(weibull, output[:,i,j].detach().numpy(), prediction[:,i,j].detach().numpy())
+                    pred = prob.index(max(prob))
+                    
+                    confusion_matrix[pred, label[i,j]] += 1
+            pbar.update(1)
+
+        
+        for i in range(8):
+            precision[i] = confusion_matrix[i][i]/np.sum(confusion_matrix[i])
+            recall[i] = confusion_matrix[i][i]/np.sum(confusion_matrix[:,i])
+            f1_score[i] = (2 * precision[i] * recall[i])/(precision[i] + recall[i])
+            print(f"A precisão para a classe {i} é {precision[i]}")  
+            print(f"A recall para a classe {i} é {recall[i]}")  
+            print(f"O F1 Score para a classe {i} é {f1_score[i]}")
     ########### get index map ###########
     '''
     path = 'D:/Caruso/code/OpenMax-main/prepared/map.data'

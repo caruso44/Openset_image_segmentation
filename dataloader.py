@@ -7,7 +7,7 @@ import general
 from tqdm import tqdm
 
 class Satelite_images(Dataset):
-    def __init__(self, path_to_patches, endpoint,  path_to_val = "", transformer = ToTensor()) -> None:
+    def __init__(self, path_to_patches, endpoint, transformer = ToTensor()) -> None:
         opt_img = np.load(os.path.join(general.PREPARED_PATH, f'{general.PREFIX_OPT}_img.npy'))
         self.opt_img = opt_img.reshape((-1, opt_img.shape[-1]))
 
@@ -15,8 +15,6 @@ class Satelite_images(Dataset):
         self.labels = np.load(os.path.join(general.PREPARED_PATH, f'{general.PREFIX_LABEL}' + endpoint)).flatten().astype(np.int64)
         self.n_classes = np.unique(self.labels).shape[0]
         self.patches = np.load(path_to_patches)
-        if path_to_val != "":
-            self.patches = np.concatenate((self.patches, np.load(path_to_val)))
         self.transformer = transformer
         
         
@@ -53,6 +51,7 @@ class Satelite_images(Dataset):
                         if label_tensor[i][j] != 7:
                             weights[label_tensor[i][j]] += 1
                 pbar.update(1)
+
         weights = 1 - weights/weights.sum()
         weights = weights/weights.sum()
         return weights

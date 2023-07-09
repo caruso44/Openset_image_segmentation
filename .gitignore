@@ -1,2 +1,4 @@
-open_set_model.pth
-__pycahe__/
+open_set_model_FCNDenseNet121.pth
+open_set_model_UNET.pth
+__pycache__/
+models/

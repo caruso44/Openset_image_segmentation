@@ -24,7 +24,7 @@ VALID_SIZE = 0.15
 """Bands order: 'BLUE','RED','GREEN','NIR','nx','ny','nz','curvatura','intensity','chm'"""
 #                 0      1      2      3     0    1    2       3           4        5                     
 MAX_EPOCHS = 500
-EPOCHS = 50
+EPOCHS = 100
 
 
 #LEARNING_RATE = 1e-4
@@ -47,6 +47,8 @@ PREDICTION_OVERLAPS = [0, 0.1, 0.3, 0.5, 0.7]
 
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
-LEN_VECTOR = 20000
+LEN_VECTOR = 200000
 
 IMAGE_SIZE = 64
+
+NUM_KNOWN_CLASSES = 7
