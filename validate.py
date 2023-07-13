@@ -74,26 +74,25 @@ def check_model_closed():
 
 def get_lists(net):
     val_loader = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
-    net.eval()
     print("Calculando as medias")
-    #mean =  get_mean(val_loader, net)
-    mean = np.load("mean.npy")
+    mean =  get_mean(val_loader, net)
+    #mean = np.load("mean.npy")
     print("Calculando as distâncias")
     dist = get_distances(val_loader, mean, net)
     
 
 def get_weibull_model():
     print("Iniciando a determinação do modelo weibull")
-    dist_list = np.load("distances.npy", allow_pickle= True)
-    mean_list = np.load("mean.npy")
-    weibull_model = weibull_tailfitting(mean_list, dist_list, NUM_KNOWN_CLASSES, tailsize=1000)
+    dist_list = np.load("distances_eucos.npy", allow_pickle= True)
+    mean_list = np.load("mean_eucos.npy")
+    weibull_model = weibull_tailfitting(mean_list, dist_list, NUM_KNOWN_CLASSES, tailsize=10)
     return weibull_model
 
 def test(net, weibull_model):
-    dl = Satelite_images(PATCHES_VAL_PATH, "_test.npy")
+    dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
     net.eval() 
     confusion_matrix = np.zeros((8, 8))
-    t = 0
+    k = 0
     with tqdm(total=len(dl)) as pbar:
         for image, label in dl:
             label = label.numpy()
@@ -104,14 +103,17 @@ def test(net, weibull_model):
             output_soft = output_soft.squeeze(0).to("cpu")
             output = output.squeeze(0).to("cpu")
             probs = recalibrate_scores(
-                weibull_model, output, output_soft, NUM_KNOWN_CLASSES, NUM_KNOWN_CLASSES, 'euclidean'
+                weibull_model, output, output_soft, NUM_KNOWN_CLASSES, NUM_KNOWN_CLASSES, 'eucos'
             )
             for i in range(len(label)):
                 pred = np.argmax(probs[i])
-                confusion_matrix[label[i], pred] += 1
+                if pred != 7 and probs[i, pred] < 0.999999999:
+                    confusion_matrix[label[i], 7] += 1
+                else:
+                    confusion_matrix[label[i], pred] += 1
             pbar.update(1)
-            t += 1
-            if t == 100:
+            k += 1
+            if k == 500:
                 break
     print_confusion_matrix(confusion_matrix, 8)
 

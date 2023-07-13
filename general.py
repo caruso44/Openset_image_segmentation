@@ -24,7 +24,7 @@ VALID_SIZE = 0.15
 """Bands order: 'BLUE','RED','GREEN','NIR','nx','ny','nz','curvatura','intensity','chm'"""
 #                 0      1      2      3     0    1    2       3           4        5                     
 MAX_EPOCHS = 500
-EPOCHS = 100
+EPOCHS = 50
 
 
 #LEARNING_RATE = 1e-4

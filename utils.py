@@ -17,7 +17,7 @@ from general import BATCH_SIZE
 from skimage.util import view_as_windows
 import matplotlib.pyplot as plt
 from scipy.stats import weibull_min
-                     
+from openmax import compute_distance       
                             
 def create_dataloader(path_to_patches, endpoint):
     dl = Satelite_images(path_to_patches, endpoint)
@@ -26,31 +26,13 @@ def create_dataloader(path_to_patches, endpoint):
     return train_loader, dl.getweight()
 
 
-def one_hot(targets):    
-    targets_extend=targets.clone()
-    targets_extend.unsqueeze_(1) 
-    one_hot = torch.cuda.FloatTensor(targets_extend.size(0), 8, targets_extend.size(2), targets_extend.size(3)).zero_()
-    one_hot.scatter_(1, targets_extend, 1) 
-    return one_hot
 
 
-def euclidean_distance(x, y):
-    return np.sqrt(np.sum((x - y)**2))
-
-
-def add_to_vector(num, vec):
-    if len(vec) < LEN_VECTOR:
-        vec.append(num)
-    else:
-        min_idx = vec.index(min(vec))
-        if num > vec[min_idx]:
-            vec[min_idx] = num
-            
-    return vec
 
     
 
 def get_distances(dl, mean, model):
+    model.eval()
     collection = [[] for _ in range(7)]
     with tqdm(total=len(dl)) as pbar:
         for image, mask in dl:
@@ -64,10 +46,10 @@ def get_distances(dl, mean, model):
                     for j in range(IMAGE_SIZE):
                         if np.argmax(predictions[:,i,j]) == mask[i][j] and mask[i,j] < 7:
                             centroid = mean[mask[i,j]]
-                            distance = euclidean_distance(output[:,i,j], centroid)
+                            distance = compute_distance(output[:,i,j], centroid, 'eucos')
                             collection[mask[i,j]].append(distance)
             pbar.update(1)
-    np.save("distances.npy", np.array(collection))
+    np.save("distances_eucos.npy", np.array(collection))
     
 
 
@@ -84,6 +66,7 @@ def fit():
 def get_mean(dl, model):
     amount = np.zeros(7)
     mean = np.zeros((7,7))
+    model.eval()
     with tqdm(total=len(dl)) as pbar:
         for image, label in dl:
             with torch.no_grad():
@@ -101,7 +84,7 @@ def get_mean(dl, model):
             pbar.update(1)
     for i in range(7):
         mean[i] = mean[i]/amount[i]
-    np.save("mean.npy", mean)
+    np.save("mean_eucos.npy", mean)
     return mean
 
 

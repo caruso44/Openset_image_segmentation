@@ -17,6 +17,7 @@ import torch.nn.functional as F
 from models.fcn_densenet121 import FCNDenseNet121
 
 def check_model(model, loss_fn, dl, epoch):
+    model.eval()
     with tqdm(total=len(dl)) as pbar:
         val_loss = 0
         confusion_matrix = np.zeros((7,7))
@@ -98,8 +99,8 @@ def train_fn(optmizier, model, loss_fn, dl, dl_val):
 
 
 def main():
-    #model = UNET(in_channel=4,out_channel=7).to(DEVICE)
-    model = FCNDenseNet121(input_channels= 4, num_classes=7, pretrained= False, skip= False).to(DEVICE)
+    model = UNET(in_channel=4,out_channel=7).to(DEVICE)
+    #model = FCNDenseNet121(input_channels= 4, num_classes=7, pretrained= False, skip= False).to(DEVICE)
     optmizier = optmim.Adam(model.parameters(),lr= LEARNING_RATE, weight_decay = 5e-6) 
     endpoint = "_train.npy"
     dl, weights = create_dataloader(PATCHES_PATH, endpoint)   
@@ -107,7 +108,7 @@ def main():
     dl_val = Satelite_images(PATCHES_VAL_PATH, "_train.npy")  
     loss_fn = nn.CrossEntropyLoss(weight=weights, ignore_index=7, reduction= 'mean')
     model = train_fn(optmizier, model, loss_fn, dl, dl_val)
-    torch.save(model, 'open_set_model_FCNDenseNet121.pth')
+    torch.save(model, 'open_set_model_UNET.pth')
 
 
 if __name__ == "__main__":

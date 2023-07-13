@@ -3,7 +3,7 @@ import sys
 import libmr
 
 # ---------------------------------------------------------------------------------
-def weibull_tailfitting(mean, distances, num_classes, tailsize=20):
+def weibull_tailfitting(mean, distances, num_classes, tailsize):
 
     weibull_model = {}
     for i in range(num_classes):

@@ -8,7 +8,7 @@ from joblib import Parallel, delayed
 import libmr
 
 # ---------------------------------------------------------------------------------
-def compute_distance(image_feat, mean_vec, distance_type='eucos'):
+def compute_distance(image_feat, mean_vec, distance_type):
     
     dist = 0.0
     
