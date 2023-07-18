@@ -3,7 +3,7 @@ import numpy as np
 import os
 import torch
 from torchvision.transforms import ToTensor
-import general
+import utils.general as general
 from tqdm import tqdm
 
 class Satelite_images(Dataset):

@@ -1,5 +1,5 @@
-from dataloader import Satelite_images
-from general import(
+from utils.dataloader import Satelite_images
+from utils.general import(
     DEVICE,
     IMAGE_SIZE,
     LEN_VECTOR,
@@ -13,23 +13,17 @@ import torch.nn.functional as F
 import torch
 import numpy as np
 from tqdm import tqdm
-from general import BATCH_SIZE
+from utils.general import BATCH_SIZE
 from skimage.util import view_as_windows
 import matplotlib.pyplot as plt
 from scipy.stats import weibull_min
-from openmax import compute_distance       
+from utils.openmax import compute_distance       
                             
 def create_dataloader(path_to_patches, endpoint):
     dl = Satelite_images(path_to_patches, endpoint)
     index = list(range(len(dl)))
     train_loader = torch.utils.data.DataLoader(dl, batch_size=BATCH_SIZE, sampler= index)
     return train_loader, dl.getweight()
-
-
-
-
-
-    
 
 def get_distances(dl, mean, model):
     model.eval()
@@ -86,11 +80,6 @@ def get_mean(dl, model):
         mean[i] = mean[i]/amount[i]
     np.save("mean_eucos.npy", mean)
     return mean
-
-
-
-
-
 
 
 def create_test_patches():

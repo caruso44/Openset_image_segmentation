@@ -2,9 +2,5 @@ open_set_model_FCNDenseNet121.pth
 open_set_model_UNET.pth
 __pycache__/
 models/
-distances.npy
-mean.npy
-mean_cosine.npy
-mean_eucos.npy
-distances_cosine.npy
-distances_eucos.npy
+means/
+distances/

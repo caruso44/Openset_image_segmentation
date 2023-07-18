@@ -1,11 +1,11 @@
 import torch
-from dataloader import Satelite_images
+from utils.dataloader import Satelite_images
 import numpy as np
 import torch.nn as nn
-from neural import UNET
+from utils.neural import UNET
 import torch.optim as optmim
-from utils import create_dataloader
-from general import(
+from utils.utils import create_dataloader
+from utils.general import(
     DEVICE,
     LEARNING_RATE,
     PATCHES_PATH,
@@ -16,7 +16,7 @@ from tqdm import tqdm
 import torch.nn.functional as F
 from models.fcn_densenet121 import FCNDenseNet121
 
-def check_model(model, loss_fn, dl, epoch):
+def check_model(model, loss_fn, dl, epoch, feat = False):
     model.eval()
     with tqdm(total=len(dl)) as pbar:
         val_loss = 0
@@ -28,7 +28,10 @@ def check_model(model, loss_fn, dl, epoch):
             with torch.no_grad():
                 image = image.float().unsqueeze(0).to(DEVICE)
                 mask = mask.unsqueeze(0).to(DEVICE)
-                distribution = model(image)
+                if feat == False:
+                    distribution = model(image)
+                else:
+                    distribution,_,_ = model(image)
                 predictions = F.softmax(distribution, dim = 1)
                 loss = loss_fn(predictions,mask)
                 
@@ -60,7 +63,7 @@ def check_model(model, loss_fn, dl, epoch):
             print(f"O F1 Score para a classe {i} é {f1_score[i]}")
 
 
-def train_fn(optmizier, model, loss_fn, dl, dl_val):
+def train_fn(optmizier, model, loss_fn, dl, dl_val, feat):
     last_loss = 0
     k = 0
     for epoch in range(EPOCHS):
@@ -70,8 +73,10 @@ def train_fn(optmizier, model, loss_fn, dl, dl_val):
                 image = image.float().to(DEVICE)
                 mask = mask.to(DEVICE)
                 ##################fowards####################
-
-                predictions = model(image)
+                if feat == False:
+                    predictions = model(image)
+                else:
+                    predictions,_,_ = model(image)
                 predictions = F.softmax(predictions, dim = 1)
                 loss = loss_fn(predictions,mask)
                 
@@ -85,7 +90,7 @@ def train_fn(optmizier, model, loss_fn, dl, dl_val):
                     
         print(f'\nEPOCH {epoch}:\n running loss = {running_loss/len(dl)}')
         if k % 10 == 0:
-            check_model(model, loss_fn, dl_val, epoch)
+            check_model(model, loss_fn, dl_val, epoch, feat=feat)
         if last_loss - running_loss < 1e-3 and epoch > 0:
             if optmizier.param_groups[0]['lr'] > 1e-9:
                 optmizier.param_groups[0]['lr'] *= 0.5
@@ -94,22 +99,16 @@ def train_fn(optmizier, model, loss_fn, dl, dl_val):
                 return model
         last_loss = running_loss
         k += 1
-    check_model(model, loss_fn, dl_val, EPOCHS)
+    check_model(model, loss_fn, dl_val, EPOCHS, feat=feat)
     return model
 
 
-def main():
-    model = UNET(in_channel=4,out_channel=7).to(DEVICE)
-    #model = FCNDenseNet121(input_channels= 4, num_classes=7, pretrained= False, skip= False).to(DEVICE)
+def main(feat, model):
     optmizier = optmim.Adam(model.parameters(),lr= LEARNING_RATE, weight_decay = 5e-6) 
     endpoint = "_train.npy"
     dl, weights = create_dataloader(PATCHES_PATH, endpoint)   
     weights = weights.to(DEVICE)
     dl_val = Satelite_images(PATCHES_VAL_PATH, "_train.npy")  
     loss_fn = nn.CrossEntropyLoss(weight=weights, ignore_index=7, reduction= 'mean')
-    model = train_fn(optmizier, model, loss_fn, dl, dl_val)
+    model = train_fn(optmizier, model, loss_fn, dl, dl_val, feat)
     torch.save(model, 'open_set_model_UNET.pth')
-
-
-if __name__ == "__main__":
-    main()

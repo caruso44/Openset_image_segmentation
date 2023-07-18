@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 from tqdm import tqdm
-from general import(
+from utils.general import(
     DEVICE,
     PATCHES_VAL_PATH,
     NUM_KNOWN_CLASSES,
@@ -9,10 +9,11 @@ from general import(
 )
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from dataloader import Satelite_images
-from utils import get_distances, get_mean
-from evt import weibull_tailfitting
-from openmax import recalibrate_scores
+from utils.dataloader import Satelite_images
+from utils.utils import get_distances, get_mean
+from utils.evt import weibull_tailfitting
+from utils.openmax import recalibrate_scores
+from utils.openpca import fit_pca_model, fit_quantiles
 
 def print_confusion_matrix(confusion_matrix, size):
     precision = np.zeros(size)
@@ -83,8 +84,8 @@ def get_lists(net):
 
 def get_weibull_model():
     print("Iniciando a determinação do modelo weibull")
-    dist_list = np.load("distances_eucos.npy", allow_pickle= True)
-    mean_list = np.load("mean_eucos.npy")
+    dist_list = np.load("distances/distances_eucos.npy", allow_pickle= True)
+    mean_list = np.load("means/mean_eucos.npy")
     weibull_model = weibull_tailfitting(mean_list, dist_list, NUM_KNOWN_CLASSES, tailsize=10)
     return weibull_model
 
@@ -112,16 +113,20 @@ def test(net, weibull_model):
                 else:
                     confusion_matrix[label[i], pred] += 1
             pbar.update(1)
-            k += 1
-            if k == 500:
-                break
     print_confusion_matrix(confusion_matrix, 8)
 
-if __name__ == "__main__":
+def validate_OpenFCN():
     model = torch.load("open_set_model_UNET.pth")
     model = model.to(DEVICE)
-    #check_model_closed() # verificar o modelo atraves de uma abordagem em conjunto fechado
     #get_lists(model) # determinar e salvar a lista de distâncias e médias
     weibull_model = get_weibull_model() # determinar e salvar o modelo de weibull
     print("iniciando o teste")
     test(model, weibull_model) # testar o modelo em conjunto aberto
+
+
+def validate_OpenPCA():
+    model = torch.load("open_set_model_UNET.pth")
+    model = model.to(DEVICE)
+    t = torch.ones((1,4,64,64)).to(DEVICE)
+    x = model(t)
+    print(x[0].size(), x[1].size(),x[2].size())

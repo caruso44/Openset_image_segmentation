@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torchvision.transforms.functional as F
 
+
 class Doubleconv(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
@@ -20,7 +21,7 @@ class Doubleconv(nn.Module):
 
 
 class UNET(nn.Module):
-    def __init__(self, in_channel = 3, out_channel = 1, features = [64,128,256,512]):
+    def __init__(self, in_channel = 3, out_channel = 1, feat = False, features = [64,128,256,512]):
         super().__init__()
         self.down = nn.ModuleList()
         self.up = nn.ModuleList()
@@ -40,7 +41,7 @@ class UNET(nn.Module):
         
         self.bottleneck = Doubleconv(features[-1], features[-1] * 2)
         self.final_conv = nn.Conv2d(features[0], out_channel, kernel_size = 1)
-
+        self.feat = feat
     
     def forward(self, x):
         skip_connection = []
@@ -52,12 +53,17 @@ class UNET(nn.Module):
         
         x = self.bottleneck(x)
         skip_connection = skip_connection[::-1]
-        
+        y = 0
         for idx in range(0,len(self.up),2):
+            y = x
             x = self.up[idx](x)
             skip = skip_connection[idx//2]
             if x.shape != skip.shape:
                 F.resize(x,size=skip.shape[2:])
             conc_skip = torch.concat((skip,x), dim=1) 
             x = self.up[idx + 1](conc_skip)
+        if self.feat == True:
+            return self.final_conv(x), x, nn.functional.interpolate(y, x.size()[2:], mode='bilinear')
         return self.final_conv(x)
+
+

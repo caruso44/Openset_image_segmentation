@@ -1,7 +1,7 @@
 import numpy as np
 import scipy as sp
 import scipy.spatial.distance as spd
-from evt import weibull_tailfitting, query_weibull
+from utils.evt import weibull_tailfitting, query_weibull
 
 from joblib import Parallel, delayed
 
