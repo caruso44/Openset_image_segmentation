@@ -52,3 +52,16 @@ LEN_VECTOR = 200000
 IMAGE_SIZE = 64
 
 NUM_KNOWN_CLASSES = 7
+
+MAP_COLOR = ['white', 'green', 'blue', 'yellow', 'purple', 'black', 'grey', 'red']
+
+COLOR_TO_RGB = {
+    'white': [1.0, 1.0, 1.0],
+    'green': [0.0, 1.0, 0.0],
+    'blue': [0.0, 0.0, 1.0],
+    'yellow': [1.0, 1.0, 0.0],
+    'purple': [1.0, 0.0, 1.0],
+    'black': [0.0, 0.0, 0.0],
+    'grey': [0.5, 0.5, 0.5],
+    'red': [1.0, 0.0, 0.0]
+}

@@ -32,7 +32,7 @@ def print_confusion_matrix(confusion_matrix, size):
         print(f"A precisão para a classe {i} é {precision[i]}")  
         print(f"A recall para a classe {i} é {recall[i]}")  
         print(f"O F1 Score para a classe {i} é {f1_score[i]}")  
-
+    '''
     plt.imshow(confusion_matrix, cmap=plt.cm.Blues)
     plt.title('Confusion Matrix')
     plt.colorbar()
@@ -43,6 +43,7 @@ def print_confusion_matrix(confusion_matrix, size):
     plt.xticks(tick_marks, classes)
     plt.yticks(tick_marks, classes)
     plt.show()
+    '''
     print(confusion_matrix)
 
 def get_confusion_matrix(model, dl):
@@ -55,6 +56,7 @@ def get_confusion_matrix(model, dl):
                 image = image.float().unsqueeze(0).to(DEVICE)
                 mask = mask.unsqueeze(0).to(DEVICE)
                 distribution = model(image)
+                distribution = distribution[0]
                 predictions = F.softmax(distribution, dim = 1)
                 pbar.update(1)
                 predictions = torch.argmax(predictions, dim = 1)
@@ -67,8 +69,8 @@ def get_confusion_matrix(model, dl):
     print_confusion_matrix(confusion_matrix, 7)
 
 def check_model_closed():
-    dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
-    model = torch.load("open_set_model_UNET.pth")
+    dl = Satelite_images(PATCHES_TEST_PATH, "_test.npy")
+    model = torch.load("open_set_model_openpca.pth")
     model = model.to(DEVICE)
     get_confusion_matrix(model, dl)
 
@@ -84,39 +86,40 @@ def get_lists(net):
 
 def get_weibull_model():
     print("Iniciando a determinação do modelo weibull")
-    dist_list = np.load("distances/distances_eucos.npy", allow_pickle= True)
-    mean_list = np.load("means/mean_eucos.npy")
+    dist_list = np.load("distances_eucos.npy", allow_pickle= True)
+    mean_list = np.load("mean_eucos.npy")
     weibull_model = weibull_tailfitting(mean_list, dist_list, NUM_KNOWN_CLASSES, tailsize=10)
     return weibull_model
 
 def test(net, weibull_model):
-    dl = Satelite_images(PATCHES_VAL_PATH, "_train.npy")
+    dl = Satelite_images(PATCHES_TEST_PATH, "_test.npy")
     net.eval() 
     confusion_matrix = np.zeros((8, 8))
-    k = 0
     with tqdm(total=len(dl)) as pbar:
-        for image, label in dl:
-            label = label.numpy()
-            label = label.reshape(label.shape[0] * label.shape[1])
-            image = image.unsqueeze(0).to(DEVICE)
-            output = net(image)
-            output_soft = F.softmax(output, dim = 1)
-            output_soft = output_soft.squeeze(0).to("cpu")
-            output = output.squeeze(0).to("cpu")
-            probs = recalibrate_scores(
-                weibull_model, output, output_soft, NUM_KNOWN_CLASSES, NUM_KNOWN_CLASSES, 'eucos'
-            )
-            for i in range(len(label)):
-                pred = np.argmax(probs[i])
-                if pred != 7 and probs[i, pred] < 0.999999999:
-                    confusion_matrix[label[i], 7] += 1
-                else:
-                    confusion_matrix[label[i], pred] += 1
-            pbar.update(1)
+        with torch.no_grad():
+            for image, label in dl:
+                label = label.numpy()
+                label = label.reshape(label.shape[0] * label.shape[1])
+                image = image.unsqueeze(0).to(DEVICE)
+                output = net(image)
+                output = output[0]
+                output_soft = F.softmax(output, dim = 1)
+                output_soft = output_soft.squeeze(0).to("cpu")
+                output = output.squeeze(0).to("cpu")
+                probs = recalibrate_scores(
+                    weibull_model, output, output_soft, NUM_KNOWN_CLASSES, NUM_KNOWN_CLASSES, 'eucos'
+                )
+                for i in range(len(label)):
+                    pred = np.argmax(probs[i])
+                    if pred != 7 and probs[i, pred] < 0.99999:
+                        confusion_matrix[label[i], 7] += 1
+                    else:
+                        confusion_matrix[label[i], pred] += 1
+                pbar.update(1)
     print_confusion_matrix(confusion_matrix, 8)
 
 def validate_OpenFCN():
-    model = torch.load("open_set_model_UNET.pth")
+    model = torch.load("open_set_model_openpca.pth")
     model = model.to(DEVICE)
     #get_lists(model) # determinar e salvar a lista de distâncias e médias
     weibull_model = get_weibull_model() # determinar e salvar o modelo de weibull

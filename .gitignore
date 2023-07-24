@@ -1,6 +1,10 @@
 open_set_model_FCNDenseNet121.pth
+open_set_model_openpca.pth
 open_set_model_UNET.pth
 __pycache__/
 models/
 means/
 distances/
+distances_eucos.npy
+mean_eucos.npy
+neural.py

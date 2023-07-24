@@ -33,6 +33,7 @@ def get_distances(dl, mean, model):
             with torch.no_grad():
                 image = image.unsqueeze(0).to(DEVICE)
                 output = model(image)
+                output = output[0]
                 predictions = F.softmax(output, dim = 1)
                 output = output.squeeze(0).to("cpu").numpy()
                 predictions = predictions.squeeze(0).to("cpu").numpy()
@@ -66,6 +67,7 @@ def get_mean(dl, model):
             with torch.no_grad():
                 image = image.unsqueeze(0).to(DEVICE)
                 output = model(image)
+                output = output[0]
                 predictions = F.softmax(output, dim = 1)
                 output = output.squeeze(0).to("cpu")
                 predictions = predictions.squeeze(0).to("cpu")
